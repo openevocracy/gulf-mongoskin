@@ -1,21 +1,3 @@
-/**
- * gulf - Sync anything!
- * Copyright (C) 2013-2015 Marcel Klehr <mklehr@gmx.net>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 var _ = require("underscore");
 var Promise = require("bluebird");
 
@@ -23,22 +5,25 @@ var Promise = require("bluebird");
 function MongoskinAdapter(db, docId) {
   this.db = db;
   this.docId = docId;
-  this.reset();
 }
 module.exports = MongoskinAdapter;
 
 MongoskinAdapter.prototype.reset = function() {
-  // FIXME delete history and last id
-  /*var insert_history_promise =
-    this.db.collection('gulf_revisions').Async();
-  var update_lastrevision_id_promise =
-    this.db.collection('gulf_lastrevision_id').updateAsync();
+  console.log('reset');
   
-  return Promise.join(insert_history_promise,
-                      update_lastrevision_id_promise);*/
+  // delete history and last id
+  var remove_history_promise =
+    this.db.collection('gulf_revisions').removeAsync({ 'docId': this.docId });
+  var update_lastrevision_id_promise =
+    this.db.collection('gulf_lastrevision_id').updateAsync(
+      { '_id': this.docId }, { $set: {'revId': 0} });
+  
+  return Promise.join(remove_history_promise,
+                      update_lastrevision_id_promise);
 };
 
 MongoskinAdapter.prototype.getRevision = function(revId) {
+  console.log('getRevision');
   /*
     Example:
     revisions collection:
@@ -55,18 +40,17 @@ MongoskinAdapter.prototype.getRevision = function(revId) {
 MongoskinAdapter.prototype.getLastRevisionId = function() {
   return this.db.collection('gulf_lastrevision_id').
     findOneAsync( { '_id': this.docId } ).then(function (rev) {
-      console.log(JSON.stringify(rev));
+      console.log('getLastRevisionId', JSON.stringify(rev));
       
       if(_.isNull(rev))
         return undefined;
       else
         return rev.revId;
     });
-    
-    //get('revId');
 };
 
 MongoskinAdapter.prototype.storeRevision = function(rev) {
+  console.log('storeRevision');
   // FIXME: maybe insert instead of updateAsync is appropriate here
   var insert_history_promise =
     this.db.collection('gulf_revisions').updateAsync(
