@@ -23,7 +23,7 @@ MongoskinAdapter.prototype.reset = function() {
 MongoskinAdapter.prototype.getRevision = function(revId) {
   /*
     Example:
-    revisions collection:
+    gulf_revisions collection:
     {_id: 123jkb243, docId: sdfklj98d, revId: 0, content: "Hello World", ottype: ""}
     
     gulf_lastrevision_id collection:
@@ -52,7 +52,7 @@ MongoskinAdapter.prototype.getLastRevisionId = function() {
 };
 
 MongoskinAdapter.prototype.storeRevision = function(rev) {
-  // FIXME: maybe insert instead of updateAsync is appropriate here
+  // FIXME: maybe "insert" instead of "updateAsync" is appropriate here
   var insert_history_promise =
     this.db.collection('gulf_revisions').updateAsync(
       { 'revId': rev.id, 'docId': this.docId }, { $set: _.omit(rev, 'id') },

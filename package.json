@@ -4,6 +4,8 @@
   "description": "Gulf storage adapter for mongoskin",
   "main": "index.js",
   "dependencies": {
+    "babel-runtime": "^6.11.6",
+    "core-js": "2.x",
     "mongoskin": "*"
   },
   "repository": {
