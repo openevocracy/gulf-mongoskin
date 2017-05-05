@@ -9,8 +9,6 @@ function MongoskinAdapter(db, docId) {
 module.exports = MongoskinAdapter;
 
 MongoskinAdapter.prototype.reset = function() {
-  console.log('reset');
-  
   // delete history and last id
   var remove_history_promise =
     this.db.collection('gulf_revisions').removeAsync({ 'docId': this.docId });
@@ -23,7 +21,6 @@ MongoskinAdapter.prototype.reset = function() {
 };
 
 MongoskinAdapter.prototype.getRevision = function(revId) {
-  console.log('getRevision');
   /*
     Example:
     revisions collection:
@@ -34,23 +31,27 @@ MongoskinAdapter.prototype.getRevision = function(revId) {
   */
   
   return this.db.collection('gulf_revisions').
-        findOneAsync({ 'revId': revId, 'docId': this.docId } );
+    findOneAsync({ 'revId': revId, 'docId': this.docId }, {'_id': false, 'docId': false}).
+    then(function(rev) {
+      // Rename revId and delete old entry
+      rev.id = rev.revId;
+      delete rev.revId;
+      
+      return Promise.resolve(rev);
+    });
 };
 
 MongoskinAdapter.prototype.getLastRevisionId = function() {
   return this.db.collection('gulf_lastrevision_id').
     findOneAsync( { '_id': this.docId } ).then(function (rev) {
-      console.log('getLastRevisionId', JSON.stringify(rev));
-      
       if(_.isNull(rev))
-        return undefined;
+        return Promise.reject();
       else
-        return rev.revId;
+        return Promise.resolve(rev.revId);
     });
 };
 
 MongoskinAdapter.prototype.storeRevision = function(rev) {
-  console.log('storeRevision');
   // FIXME: maybe insert instead of updateAsync is appropriate here
   var insert_history_promise =
     this.db.collection('gulf_revisions').updateAsync(
